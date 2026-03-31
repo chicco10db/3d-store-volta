@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Store 3D Volta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#16151a;--surface:#1f1e26;--card:#27263100;--border:#2e2d3a;
+  --border2:#3a3849;--text:#e8e6f0;--muted:#8884a0;--hint:#504e64;
+  --orange:#f07030;--orange-l:rgba(240,112,48,.12);--orange-m:rgba(240,112,48,.3);
+  --purple:#8060e8;--purple-l:rgba(128,96,232,.12);
+  --green:#28a860;--green-l:rgba(40,168,96,.12);
+  --red:#e04848;--red-l:rgba(224,72,72,.12);
+  --amber:#d08820;--amber-l:rgba(208,136,32,.12);
+  --blue:#3880e0;--blue-l:rgba(56,128,224,.12);
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+/* LOGIN */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:1rem;position:relative;overflow:hidden;}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(240,112,48,.08) 0%,transparent 70%);}
+.login-box{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.4);}
+.login-logo{width:52px;height:52px;border-radius:13px;background:var(--orange);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;}
+.login-logo svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.login-box h1{font-size:1.3rem;font-weight:700;text-align:center;margin-bottom:.3rem;}
+.login-box .sub{color:var(--muted);font-size:.85rem;text-align:center;margin-bottom:2rem;}
+.err-box{background:var(--red-l);border:1px solid rgba(224,72,72,.3);border-radius:8px;padding:8px 12px;font-size:.82rem;color:var(--red);margin-bottom:1rem;display:none;}
+.lf{margin-bottom:1rem;}
+.lf label{display:block;font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.45rem;}
+.lf input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .15s;}
+.lf input:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-m);}
+.login-btn{width:100%;background:var(--orange);color:#fff;border:none;padding:12px;border-radius:9px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:.5rem;}
+.login-btn:hover{background:#d85e20;}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);position:fixed;left:0;top:0;bottom:0;z-index:100;display:flex;flex-direction:column;}
+.sb-logo{padding:1.4rem 1.25rem 1rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.sb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--orange);display:flex;align-items:center;justify-content:center;}
+.sb-logo-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.sb-logo-text{font-weight:700;font-size:.88rem;line-height:1.25;}
+.sb-logo-text small{font-size:.7rem;color:var(--muted);font-weight:400;display:block;}
+.sb-nav{flex:1;padding:.75rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.sb-section-label{font-size:.65rem;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.1em;padding:1rem .75rem .4rem;font-family:'DM Mono',monospace;}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:var(--muted);font-size:.85rem;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left;}
+.sb-link:hover{color:var(--text);background:rgba(255,255,255,.06);}
+.sb-link.active{color:var(--orange);background:var(--orange-l);border:1px solid var(--orange-m);}
+.sb-link .ico{width:18px;text-align:center;flex-shrink:0;}
+.sb-link svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.badge-pill{margin-left:auto;background:var(--orange);color:#fff;border-radius:100px;padding:1px 8px;font-size:.68rem;font-weight:700;min-width:20px;text-align:center;display:none;}
+.sb-bottom{padding:.75rem;border-top:1px solid var(--border);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;color:var(--muted);font-size:.82rem;font-weight:500;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;transition:all .15s;}
+.sb-logout:hover{color:var(--red);background:var(--red-l);}
+.sb-logout svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:1rem;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:.75rem;}
+.topbar-badge{background:var(--green-l);border:1px solid rgba(40,168,96,.25);color:var(--green);border-radius:7px;padding:4px 10px;font-size:.74rem;font-weight:600;}
+
+.panel{display:none;padding:2rem;}.panel.active{display:block;}
+.panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.panel-header-text h2{font-size:1.2rem;font-weight:700;}
+.panel-header-text p{color:var(--muted);font-size:.85rem;margin-top:.25rem;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .15s;}
+.btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.btn-primary{background:var(--orange);color:#fff;}
+.btn-primary:hover{background:#d85e20;}
+.btn-secondary{background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:rgba(255,255,255,.12);}
+.btn-danger{background:var(--red-l);color:var(--red);border:1px solid rgba(224,72,72,.2);}
+.btn-danger:hover{background:rgba(224,72,72,.2);}
+.btn-success{background:var(--green-l);color:var(--green);border:1px solid rgba(40,168,96,.2);}
+.btn-sm{padding:5px 11px;font-size:.76rem;border-radius:6px;}
+
+/* STAT CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:1.25rem;}
+.stat-card-n{font-size:1.9rem;font-weight:700;font-family:'DM Mono',monospace;color:var(--orange);}
+.stat-card-n.blue{color:var(--blue);}
+.stat-card-n.green{color:var(--green);}
+.stat-card-n.amber{color:var(--amber);}
+.stat-card-l{font-size:.78rem;color:var(--muted);margin-top:4px;}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;}
+.section-card h3{font-size:.92rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem;}
+.section-card h3 svg{width:15px;height:15px;fill:none;stroke:var(--orange);stroke-width:1.8;}
+
+/* FORM ELEMENTS */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:.9rem;}
+.fg label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.fg input,.fg select,.fg textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:.88rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .15s;width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-m);}
+.fg textarea{resize:vertical;min-height:75px;}
+.fg select option{background:var(--surface);}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.full{grid-column:1/-1;}
+.save-row{display:flex;justify-content:flex-end;padding-top:.75rem;border-top:1px solid var(--border);margin-top:.5rem;}
+
+/* RANGE SLIDER */
+.range-group{display:flex;align-items:center;gap:.75rem;}
+.range-group input[type=range]{flex:1;accent-color:var(--orange);}
+.range-val{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--orange);min-width:52px;text-align:right;font-weight:500;}
+
+/* TABELLA PRODOTTI */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{background:rgba(255,255,255,.04);padding:10px 16px;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);}
+.data-table td{padding:11px 16px;font-size:.84rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(255,255,255,.02);}
+.tbl-thumb{width:38px;height:38px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tbl-thumb img{width:100%;height:100%;object-fit:cover;}
+.tbl-thumb svg{width:18px;height:18px;fill:none;stroke:var(--hint);stroke-width:1.6;}
+.tbl-actions{display:flex;gap:5px;}
+
+/* BADGE */
+.badge{padding:3px 9px;border-radius:7px;font-size:.68rem;font-weight:700;}
+.b-fdm{background:var(--orange-l);color:var(--orange);}
+.b-resina{background:var(--purple-l);color:var(--purple);}
+.b-laser{background:var(--amber-l);color:var(--amber);}
+.b-custom{background:var(--green-l);color:var(--green);}
+.b-new{background:var(--blue-l);color:var(--blue);}
+.b-wip{background:var(--amber-l);color:var(--amber);}
+.b-done{background:var(--green-l);color:var(--green);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.modal-head{padding:1.5rem 1.5rem 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-x{background:rgba(255,255,255,.07);border:none;width:30px;height:30px;border-radius:7px;cursor:pointer;color:var(--muted);font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.modal-x:hover{background:rgba(255,255,255,.12);color:var(--text);}
+.modal-body{padding:0 1.5rem;}
+.modal-foot{padding:1.25rem 1.5rem;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);margin-top:1.5rem;}
+
+/* IMG UPLOAD */
+.img-upload{border:2px dashed var(--border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;position:relative;transition:all .15s;}
+.img-upload:hover{border-color:var(--orange);}
+.img-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-preview{width:100%;height:120px;object-fit:cover;border-radius:8px;display:none;}
+.img-ph{color:var(--muted);font-size:.84rem;}
+.img-ph svg{width:32px;height:32px;fill:none;stroke:var(--hint);stroke-width:1.4;display:block;margin:0 auto .5rem;}
+
+/* OPZIONI BUILDER */
+.opts-builder{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;}
+.opt-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.75rem;margin-bottom:.6rem;}
+.opt-row-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+.opt-row-top input{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:.82rem;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:170px;}
+.opt-row-top input:focus{border-color:var(--orange);}
+.choices-wrap{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.choice-tag{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.07);border-radius:6px;padding:3px 8px;font-size:.76rem;color:var(--text);}
+.choice-tag button{background:none;border:none;cursor:pointer;color:var(--hint);font-size:.8rem;line-height:1;transition:color .15s;}
+.choice-tag button:hover{color:var(--red);}
+.add-choice{background:none;border:1px dashed var(--border);border-radius:6px;padding:3px 9px;font-size:.76rem;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.add-choice:hover{border-color:var(--orange);color:var(--orange);}
+.add-opt-btn{width:100%;background:none;border:1px dashed var(--border);border-radius:8px;padding:8px;font-size:.82rem;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:.4rem;}
+.add-opt-btn:hover{border-color:var(--orange);color:var(--orange);}
+
+/* ORDINI */
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:.75rem;transition:all .15s;}
+.order-card:hover{border-color:var(--border2);}
+.order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.6rem;}
+.order-id{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--hint);}
+.order-name{font-weight:700;}
+.order-meta{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:.6rem;}
+.order-prods{font-size:.81rem;background:var(--bg);border-radius:7px;padding:.6rem .9rem;color:var(--text);margin-bottom:.75rem;line-height:1.5;border:1px solid var(--border);}
+.order-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* FILTER TABS */
+.ftabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.ftab{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.82rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.ftab:hover{color:var(--text);}
+.ftab.active{background:rgba(255,255,255,.08);color:var(--text);border-color:var(--border2);}
+
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-state p{margin-top:.5rem;font-size:.88rem;}
+
+/* SECTION SETTINGS GROUPS */
+.settings-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;}
+.settings-section h3{font-size:.9rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;color:var(--orange);}
+.settings-section h3 svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;}
+
+/* STAT ITEM EDITABLE */
+.stat-edit-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;}
+.stat-edit-row input{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .15s;width:100%;}
+.stat-edit-row input:focus{border-color:var(--orange);}
+
+@media(max-width:780px){.sidebar{display:none;}.main{margin-left:0;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="2" y1="16" x2="22" y2="16"/></svg>
+    </div>
+    <h1>Pannello Admin</h1>
+    <div class="sub">Store 3D — Liceo Volta · Accesso riservato</div>
+    <div class="err-box" id="err-box">Password errata. Riprova.</div>
+    <div class="lf">
+      <label>Password</label>
+      <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 22 8 22 16 12 22 2 16 2 8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="2" y1="16" x2="22" y2="16"/></svg></div>
+        <div class="sb-logo-text">Admin Panel<small>Store 3D Volta</small></div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-section-label">Panoramica</div>
+        <button class="sb-link active" onclick="showPanel('dashboard',this)">
+          <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Dashboard
+        </button>
+        <div class="sb-section-label">Gestione</div>
+        <button class="sb-link" onclick="showPanel('prodotti',this)">
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>Prodotti
+        </button>
+        <button class="sb-link" onclick="showPanel('ordini',this)">
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Ordini
+          <span class="badge-pill" id="new-badge">0</span>
+        </button>
+        <div class="sb-section-label">Configurazione</div>
+        <button class="sb-link" onclick="showPanel('sito',this)">
+          <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>Contenuti sito
+        </button>
+        <button class="sb-link" onclick="showPanel('prezzi',this)">
+          <span class="ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Prezzi e costi
+        </button>
+      </div>
+      <div class="sb-bottom">
+        <button class="sb-logout" onclick="doLogout()">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Esci dall'admin
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title" id="topbar-title">Dashboard</span>
+        <div class="topbar-right">
+          <span class="topbar-badge" id="sync-badge">Sincronizzato</span>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stat-row" id="dash-stats"></div>
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg> Ordini recenti</h3>
+          <div id="dash-orders"></div>
+        </div>
+      </div>
+
+      <!-- PRODOTTI -->
+      <div class="panel" id="panel-prodotti">
+        <div class="panel-header">
+          <div class="panel-header-text"><h2>Prodotti</h2><p>Gestisci il catalogo prodotti visibile nello shop.</p></div>
+          <button class="btn btn-primary" onclick="openProdModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuovo prodotto
+          </button>
+        </div>
+        <div class="table-wrap" style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Img</th><th>Nome</th><th>Cat.</th><th>Prezzo</th><th>Opzioni</th><th>Azioni</th></tr></thead>
+            <tbody id="prod-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ORDINI -->
+      <div class="panel" id="panel-ordini">
+        <div class="panel-header">
+          <div class="panel-header-text"><h2>Ordini ricevuti</h2><p>Gestisci tutte le richieste di stampa inviate dai clienti.</p></div>
+        </div>
+        <div class="ftabs">
+          <button class="ftab active" onclick="filterOrders('tutti',this)">Tutti</button>
+          <button class="ftab" onclick="filterOrders('nuovo',this)">Nuovi</button>
+          <button class="ftab" onclick="filterOrders('in lavorazione',this)">In lavorazione</button>
+          <button class="ftab" onclick="filterOrders('completato',this)">Completati</button>
+        </div>
+        <div id="orders-list"></div>
+      </div>
+
+      <!-- SITO CONTENUTI -->
+      <div class="panel" id="panel-sito">
+        <div class="panel-header">
+          <div class="panel-header-text"><h2>Contenuti del sito</h2><p>Modifica testi, titoli e numeri visibili nella home e nelle pagine.</p></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Hero — sezione principale</h3>
+          <div class="fg"><label>Testo badge superiore</label><input type="text" id="s-eyebrow" placeholder="2^Asa STEAM — Liceo Volta FG"></div>
+          <div class="fg"><label>Titolo principale (usa &lt;span&gt; per arancio)</label><input type="text" id="s-headline" placeholder="Stampa &lt;span&gt;3D&lt;/span&gt; su misura per te"></div>
+          <div class="fg"><label>Sottotitolo</label><textarea id="s-tagline" style="min-height:60px" placeholder="Progettiamo e stampiamo..."></textarea></div>
+          <div class="fg"><label>Testo sezione Chi siamo</label><textarea id="s-about" placeholder="Studenti della 2^Asa STEAM..."></textarea></div>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="saveSiteText()">Salva testi</button></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg> Statistiche home (numeri in evidenza)</h3>
+          <div id="stats-editor"></div>
+          <button class="btn btn-secondary btn-sm" onclick="addStat()" style="margin-top:.5rem">+ Aggiungi statistica</button>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="saveStats()">Salva statistiche</button></div>
+        </div>
+      </div>
+
+      <!-- PREZZI -->
+      <div class="panel" id="panel-prezzi">
+        <div class="panel-header">
+          <div class="panel-header-text"><h2>Prezzi e costi</h2><p>Aggiorna i valori usati nel calcolatore del sito. Le modifiche si applicano immediatamente.</p></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Costo progettazione</h3>
+          <div class="fg">
+            <label>Costo orario progettazione (€/h)</label>
+            <div class="range-group">
+              <input type="range" id="p-prog" min="1" max="15" step="0.5" value="4.5" oninput="document.getElementById('pv-prog').textContent=this.value+'€/h';previewPrezzi()">
+              <span class="range-val" id="pv-prog">4.5€/h</span>
+            </div>
+          </div>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="savePrezzi()">Salva prezzi</button></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Filamenti FDM</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+            <div>
+              <div style="font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">PLA</div>
+              <div class="fg"><label>€/h stampa</label><div class="range-group"><input type="range" id="p-pla-ore" min="0.5" max="5" step="0.1" value="1.2" oninput="document.getElementById('pv-pla-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-pla-ore">1.2€/h</span></div></div>
+              <div class="fg"><label>€/g materiale</label><div class="range-group"><input type="range" id="p-pla-mat" min="0.005" max="0.1" step="0.001" value="0.018" oninput="document.getElementById('pv-pla-mat').textContent=this.value+'€/g';previewPrezzi()"><span class="range-val" id="pv-pla-mat">0.018€/g</span></div></div>
+            </div>
+            <div>
+              <div style="font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">PETG</div>
+              <div class="fg"><label>€/h stampa</label><div class="range-group"><input type="range" id="p-petg-ore" min="0.5" max="5" step="0.1" value="1.4" oninput="document.getElementById('pv-petg-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-petg-ore">1.4€/h</span></div></div>
+              <div class="fg"><label>€/g materiale</label><div class="range-group"><input type="range" id="p-petg-mat" min="0.005" max="0.1" step="0.001" value="0.022" oninput="document.getElementById('pv-petg-mat').textContent=this.value+'€/g';previewPrezzi()"><span class="range-val" id="pv-petg-mat">0.022€/g</span></div></div>
+            </div>
+            <div>
+              <div style="font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">ABS</div>
+              <div class="fg"><label>€/h stampa</label><div class="range-group"><input type="range" id="p-abs-ore" min="0.5" max="5" step="0.1" value="1.6" oninput="document.getElementById('pv-abs-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-abs-ore">1.6€/h</span></div></div>
+              <div class="fg"><label>€/g materiale</label><div class="range-group"><input type="range" id="p-abs-mat" min="0.005" max="0.1" step="0.001" value="0.020" oninput="document.getElementById('pv-abs-mat').textContent=this.value+'€/g';previewPrezzi()"><span class="range-val" id="pv-abs-mat">0.020€/g</span></div></div>
+            </div>
+            <div>
+              <div style="font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">TPU 95A</div>
+              <div class="fg"><label>€/h stampa</label><div class="range-group"><input type="range" id="p-tpu-ore" min="0.5" max="5" step="0.1" value="1.5" oninput="document.getElementById('pv-tpu-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-tpu-ore">1.5€/h</span></div></div>
+              <div class="fg"><label>€/g materiale</label><div class="range-group"><input type="range" id="p-tpu-mat" min="0.005" max="0.1" step="0.001" value="0.030" oninput="document.getElementById('pv-tpu-mat').textContent=this.value+'€/g';previewPrezzi()"><span class="range-val" id="pv-tpu-mat">0.030€/g</span></div></div>
+            </div>
+            <div>
+              <div style="font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">ASA</div>
+              <div class="fg"><label>€/h stampa</label><div class="range-group"><input type="range" id="p-asa-ore" min="0.5" max="5" step="0.1" value="1.5" oninput="document.getElementById('pv-asa-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-asa-ore">1.5€/h</span></div></div>
+              <div class="fg"><label>€/g materiale</label><div class="range-group"><input type="range" id="p-asa-mat" min="0.005" max="0.1" step="0.001" value="0.025" oninput="document.getElementById('pv-asa-mat').textContent=this.value+'€/g';previewPrezzi()"><span class="range-val" id="pv-asa-mat">0.025€/g</span></div></div>
+            </div>
+          </div>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="savePrezzi()">Salva prezzi FDM</button></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 14.14M4.93 4.93A10 10 0 0 0 3.52 19.07"/></svg> Resina</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="fg"><label>€/h stampa resina</label><div class="range-group"><input type="range" id="p-res-ore" min="1" max="15" step="0.5" value="4.5" oninput="document.getElementById('pv-res-ore').textContent=this.value+'€/h';previewPrezzi()"><span class="range-val" id="pv-res-ore">4.5€/h</span></div></div>
+            <div class="fg"><label>€/ml resina liquida</label><div class="range-group"><input type="range" id="p-res-ml" min="0.01" max="0.5" step="0.005" value="0.08" oninput="document.getElementById('pv-res-ml').textContent=this.value+'€/ml';previewPrezzi()"><span class="range-val" id="pv-res-ml">0.08€/ml</span></div></div>
+          </div>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="savePrezzi()">Salva prezzi resina</button></div>
+        </div>
+
+        <div class="settings-section">
+          <h3><svg viewBox="0 0 24 24"><polyline points="23 7 13 7 13 17"/><polygon points="14 4 3 4 3 15"/></svg> Incisione Laser</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+            <div class="fg"><label>Piccolo (€)</label><div class="range-group"><input type="range" id="p-las-p" min="0.5" max="20" step="0.5" value="2" oninput="document.getElementById('pv-las-p').textContent=this.value+'€';previewPrezzi()"><span class="range-val" id="pv-las-p">2€</span></div></div>
+            <div class="fg"><label>Medio (€)</label><div class="range-group"><input type="range" id="p-las-m" min="1" max="50" step="1" value="5" oninput="document.getElementById('pv-las-m').textContent=this.value+'€';previewPrezzi()"><span class="range-val" id="pv-las-m">5€</span></div></div>
+            <div class="fg"><label>Grande (€)</label><div class="range-group"><input type="range" id="p-las-g" min="2" max="100" step="1" value="10" oninput="document.getElementById('pv-las-g').textContent=this.value+'€';previewPrezzi()"><span class="range-val" id="pv-las-g">10€</span></div></div>
+          </div>
+          <div class="save-row"><button class="btn btn-primary btn-sm" onclick="savePrezzi()">Salva prezzi laser</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODOTTO -->
+<div class="modal-overlay" id="prod-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Nuovo prodotto</h3>
+      <button class="modal-x" onclick="closeProdModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Immagine -->
+      <div class="fg full">
+        <label>Immagine prodotto</label>
+        <div class="img-upload" id="img-drop">
+          <input type="file" accept="image/*" onchange="handleImg(event)">
+          <img id="img-prev" class="img-preview" src="" alt="">
+          <div class="img-ph" id="img-ph">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Carica immagine (clicca o trascina)
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:.4rem">
+          <span style="font-size:.72rem;color:var(--hint)">oppure URL:</span>
+          <input type="url" id="m-img-url" placeholder="https://..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-size:.8rem;font-family:'DM Sans',sans-serif;outline:none" oninput="previewUrl(this.value)">
+        </div>
+      </div>
+      <div class="form-grid-2" style="margin-top:.75rem">
+        <div class="fg"><label>Nome *</label><input type="text" id="m-name" placeholder="es. Portachiavi"></div>
+        <div class="fg"><label>Prezzo indicativo</label><input type="text" id="m-price" placeholder="da 1,50€"></div>
+        <div class="fg full"><label>Descrizione *</label><textarea id="m-desc" placeholder="Breve descrizione..."></textarea></div>
+        <div class="fg"><label>Categoria</label>
+          <select id="m-tech">
+            <option value="fdm">FDM / Filamento</option>
+            <option value="resina">Resina</option>
+            <option value="laser">Laser</option>
+            <option value="custom">Su misura</option>
+          </select>
+        </div>
+        <div class="fg"><label>Colore sfondo card</label>
+          <select id="m-bg">
+            <option value="#fff8f5">Arancio chiaro</option>
+            <option value="#f6f3ff">Viola chiaro</option>
+            <option value="#fffbf0">Ambra chiaro</option>
+            <option value="#f0fff6">Verde chiaro</option>
+          </select>
+        </div>
+      </div>
+      <!-- Opzioni -->
+      <div class="fg full" style="margin-top:.5rem">
+        <label>Opzioni personalizzazione</label>
+        <div class="opts-builder">
+          <div id="opts-list"></div>
+          <button class="add-opt-btn" onclick="addOpt()">+ Aggiungi gruppo opzione (Colore, Dimensione…)</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeProdModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Salva prodotto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PWD='101010';
+const S={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{localStorage.setItem(k,JSON.stringify(v));}
+};
+const DEFAULT_CONFIG={
+  eyebrow:'2^Asa STEAM — Liceo Volta FG',
+  headline:'Stampa <span>3D</span> su misura per te',
+  tagline:'Progettiamo e stampiamo oggetti personalizzati. Ogni acquisto finanzia il laboratorio RTL.',
+  about:'Studenti della 2^Asa STEAM del Liceo Volta. Ogni ordine finanzia il laboratorio RTL della scuola.',
+  stats:[{n:'6',l:'Stampanti attive'},{n:'3',l:'Tecnologie'},{n:'5',l:'Materiali'},{n:'100%',l:'Al laboratorio'}],
+  prezzi:{prog:4.5,'fdm-pla':{ore:1.2,mat:0.018},'fdm-petg':{ore:1.4,mat:0.022},'fdm-abs':{ore:1.6,mat:0.020},'fdm-tpu':{ore:1.5,mat:0.030},'fdm-asa':{ore:1.5,mat:0.025},resina:{ore:4.5,ml:0.08},laser:{piccolo:2,medio:5,grande:10}}
+};
+const DEFAULT_PRODUCTS=[
+  {id:1,name:'Portachiavi personalizzato',desc:'Il tuo nome o logo in 3D.',price:'da 1,50€',tech:'fdm',bg:'#fff8f5',img:'',options:[{label:'Colore',choices:['Bianco','Nero','Rosso','Blu','Verde','Giallo','Rosa']}]},
+  {id:2,name:'Supporto smartphone',desc:'Porta telefono da scrivania.',price:'da 3€',tech:'fdm',bg:'#fff8f5',img:'',options:[{label:'Colore',choices:['Bianco','Nero','Grigio','Blu']},{label:'Orientamento',choices:['Verticale','Orizzontale']}]},
+  {id:3,name:'Miniatura in resina',desc:'Figura decorativa ad alta definizione.',price:'da 5€',tech:'resina',bg:'#f6f3ff',img:'',options:[{label:'Dimensione',choices:['Piccola (~5cm)','Media (~10cm)','Grande (~15cm)']}]},
+  {id:4,name:'Targhetta con nome',desc:'Scritta 3D per scrivania o porta.',price:'da 2€',tech:'fdm',bg:'#fff8f5',img:'',options:[{label:'Colore',choices:['Bianco','Nero','Oro','Argento']},{label:'Dimensione',choices:['Piccola','Media','Grande']}]},
+  {id:5,name:'Portapenne organizer',desc:'Contenitore modulare per scrivania.',price:'da 4€',tech:'fdm',bg:'#fff8f5',img:'',options:[{label:'Colore',choices:['Bianco','Nero','Verde','Blu','Grigio']}]},
+  {id:6,name:'Gioiello in resina',desc:'Ciondoli e orecchini in resina.',price:'da 3€',tech:'resina',bg:'#f6f3ff',img:'',options:[{label:'Tipo',choices:['Ciondolo','Orecchini','Anello']},{label:'Colore',choices:['Trasparente','Bianco','Nero']}]},
+  {id:7,name:'Incisione laser',desc:'Logo o scritta su legno o acrilico.',price:'da 2€',tech:'laser',bg:'#fffbf0',img:'',options:[{label:'Materiale',choices:['Legno','Acrilico']},{label:'Dimensione',choices:['Piccola','Media','Grande']}]},
+  {id:8,name:'Progetto su misura',desc:'Descrivi la tua idea, la realizziamo.',price:'preventivo',tech:'custom',bg:'#f0fff6',img:'',options:[{label:'Tecnologia',choices:['FDM','Resina','Laser','Non so']}]},
+];
+
+const badgeMap={fdm:'b-fdm',resina:'b-resina',laser:'b-laser',custom:'b-custom'};
+const techLabel={fdm:'FDM',resina:'Resina',laser:'Laser',custom:'Custom'};
+const thumbSvg=`<svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`;
+
+let products=[], editingId=null, curImg='', optsList=[];
+let nextId=11;
+
+// LOGIN
+function doLogin(){
+  if(document.getElementById('pwd').value===PWD){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    initApp();
+  } else {
+    document.getElementById('err-box').style.display='block';
+    document.getElementById('pwd').value='';
+    document.getElementById('pwd').focus();
+  }
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pwd').value='';
+}
+
+// INIT
+function initApp(){
+  products=S.get('v3d_products',DEFAULT_PRODUCTS);
+  nextId=Math.max(...products.map(p=>p.id),10)+1;
+  loadPrezziSliders();
+  loadSiteFields();
+  renderDashboard();
+  setInterval(()=>{updateNewBadge();},8000);
+}
+
+// PANEL NAV
+const panelNames={dashboard:'Dashboard',prodotti:'Prodotti',ordini:'Ordini ricevuti',sito:'Contenuti sito',prezzi:'Prezzi e costi'};
+function showPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('topbar-title').textContent=panelNames[id]||id;
+  if(id==='dashboard')renderDashboard();
+  if(id==='prodotti')renderProdTable();
+  if(id==='ordini')renderOrders();
+  if(id==='sito')loadSiteFields();
+  if(id==='prezzi')loadPrezziSliders();
+}
+
+// DASHBOARD
+function renderDashboard(){
+  const orders=S.get('v3d_orders',[]);
+  const prods=S.get('v3d_products',DEFAULT_PRODUCTS);
+  const nuovi=orders.filter(o=>o.status==='nuovo').length;
+  const wip=orders.filter(o=>o.status==='in lavorazione').length;
+  const done=orders.filter(o=>o.status==='completato').length;
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-card-n">${prods.length}</div><div class="stat-card-l">Prodotti nel catalogo</div></div>
+    <div class="stat-card"><div class="stat-card-n">${orders.length}</div><div class="stat-card-l">Ordini totali</div></div>
+    <div class="stat-card"><div class="stat-card-n blue">${nuovi}</div><div class="stat-card-l">Nuovi da gestire</div></div>
+    <div class="stat-card"><div class="stat-card-n amber">${wip}</div><div class="stat-card-l">In lavorazione</div></div>
+    <div class="stat-card"><div class="stat-card-n green">${done}</div><div class="stat-card-l">Completati</div></div>`;
+  updateNewBadge();
+  const recent=orders.slice(0,4);
+  document.getElementById('dash-orders').innerHTML=recent.length?recent.map(o=>orderHtml(o,true)).join(''):'<div class="empty-state"><p>Nessun ordine ancora.</p></div>';
+}
+function updateNewBadge(){
+  const n=S.get('v3d_orders',[]).filter(o=>o.status==='nuovo').length;
+  const b=document.getElementById('new-badge');
+  b.textContent=n;b.style.display=n>0?'inline-block':'none';
+}
+
+// PRODOTTI TABLE
+function renderProdTable(){
+  products=S.get('v3d_products',DEFAULT_PRODUCTS);
+  document.getElementById('prod-tbody').innerHTML=products.map(p=>`
+    <tr>
+      <td><div class="tbl-thumb" style="background:${p.bg||'rgba(255,255,255,.06)'}">${p.img?`<img src="${p.img}" alt="">`:`${thumbSvg}`}</div></td>
+      <td style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</td>
+      <td><span class="badge ${badgeMap[p.tech]||'b-custom'}">${techLabel[p.tech]||p.tech}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--muted)">${p.price}</td>
+      <td style="font-size:.76rem;color:var(--muted)">${(p.options||[]).map(o=>o.label).join(', ')||'—'}</td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openProdModal(${p.id})">Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="delProduct(${p.id})">Elimina</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// PRODUCT MODAL
+function openProdModal(id){
+  editingId=id||null;optsList=[];curImg='';
+  document.getElementById('modal-title').textContent=id?'Modifica prodotto':'Nuovo prodotto';
+  document.getElementById('img-prev').style.display='none';
+  document.getElementById('img-ph').style.display='block';
+  document.getElementById('m-img-url').value='';
+  if(id){
+    products=S.get('v3d_products',DEFAULT_PRODUCTS);
+    const p=products.find(x=>x.id===id);
+    if(!p)return;
+    document.getElementById('m-name').value=p.name;
+    document.getElementById('m-desc').value=p.desc;
+    document.getElementById('m-price').value=p.price;
+    document.getElementById('m-tech').value=p.tech;
+    document.getElementById('m-bg').value=p.bg||'#fff8f5';
+    optsList=JSON.parse(JSON.stringify(p.options||[]));
+    curImg=p.img||'';
+    if(p.img){showPrev(p.img);}
+  } else {
+    document.getElementById('m-name').value='';
+    document.getElementById('m-desc').value='';
+    document.getElementById('m-price').value='';
+    document.getElementById('m-tech').value='fdm';
+    document.getElementById('m-bg').value='#fff8f5';
+  }
+  renderOpts();
+  document.getElementById('prod-modal').classList.add('open');
+}
+function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
+function handleImg(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{curImg=ev.target.result;document.getElementById('m-img-url').value='';showPrev(ev.target.result);};
+  r.readAsDataURL(f);
+}
+function previewUrl(url){if(url.startsWith('http')){curImg=url;showPrev(url);}}
+function showPrev(src){
+  const p=document.getElementById('img-prev'),ph=document.getElementById('img-ph');
+  p.src=src;p.style.display='block';ph.style.display='none';
+}
+function renderOpts(){
+  document.getElementById('opts-list').innerHTML=optsList.map((opt,oi)=>`
+    <div class="opt-row">
+      <div class="opt-row-top">
+        <input type="text" value="${opt.label}" onchange="optsList[${oi}].label=this.value" placeholder="Nome gruppo (es. Colore)">
+        <button class="btn btn-danger btn-sm" onclick="optsList.splice(${oi},1);renderOpts()">Rimuovi</button>
+      </div>
+      <div class="choices-wrap">
+        ${opt.choices.map((c,ci)=>`<span class="choice-tag">${c}<button onclick="optsList[${oi}].choices.splice(${ci},1);renderOpts()">✕</button></span>`).join('')}
+        <button class="add-choice" onclick="addChoice(${oi})">+ scelta</button>
+      </div>
+    </div>`).join('');
+}
+function addOpt(){optsList.push({label:'Nuova opzione',choices:['Scelta 1']});renderOpts();}
+function addChoice(oi){const c=prompt('Nuova scelta:');if(c&&c.trim()){optsList[oi].choices.push(c.trim());renderOpts();}}
+function saveProduct(){
+  const name=document.getElementById('m-name').value.trim();
+  const desc=document.getElementById('m-desc').value.trim();
+  if(!name||!desc){alert('Nome e descrizione obbligatori');return;}
+  products=S.get('v3d_products',DEFAULT_PRODUCTS);
+  const data={name,desc,price:document.getElementById('m-price').value.trim()||'su richiesta',tech:document.getElementById('m-tech').value,bg:document.getElementById('m-bg').value,img:curImg,options:JSON.parse(JSON.stringify(optsList))};
+  if(editingId){const i=products.findIndex(x=>x.id===editingId);if(i>=0)products[i]={...products[i],...data};}
+  else{products.push({id:nextId++,...data});}
+  S.set('v3d_products', products);
+  closeProdModal();renderProdTable();
+  flashSync();
+}
+function delProduct(id){
+  if(!confirm('Eliminare questo prodotto?'))return;
+  products=S.get('v3d_products',DEFAULT_PRODUCTS).filter(x=>x.id!==id);
+  S.set('v3d_products',products);renderProdTable();flashSync();
+}
+
+// ORDINI
+const stBadge={nuovo:'b-new','in lavorazione':'b-wip',completato:'b-done'};
+const stLabel={nuovo:'Nuovo','in lavorazione':'In lavorazione',completato:'Completato'};
+function orderHtml(o,compact){
+  return`<div class="order-card">
+    <div class="order-top">
+      <div><div class="order-id">${o.id} · ${o.data}</div><div class="order-name">${o.nome}</div></div>
+      <span class="badge ${stBadge[o.status]||'b-new'}">${stLabel[o.status]||o.status}</span>
+    </div>
+    <div class="order-meta">${o.email} · Classe ${o.classe||'—'}${o.note&&o.note!=='—'?' · '+o.note:''}</div>
+    <div class="order-prods">${o.prodotti||'—'}</div>
+    ${compact?'':`<div class="order-actions">
+      ${o.status==='nuovo'?`<button class="btn btn-secondary btn-sm" onclick="setOrderStatus('${o.id}','in lavorazione')">In lavorazione</button>`:''}
+      ${o.status!=='completato'?`<button class="btn btn-success btn-sm" onclick="setOrderStatus('${o.id}','completato')">Completato</button>`:''}
+      <button class="btn btn-danger btn-sm" onclick="delOrder('${o.id}')">Elimina</button>
+    </div>`}
+  </div>`;
+}
+function renderOrders(filter='tutti'){
+  const all=S.get('v3d_orders',[]);
+  const list=filter==='tutti'?all:all.filter(o=>o.status===filter);
+  const el=document.getElementById('orders-list');
+  el.innerHTML=list.length?list.map(o=>orderHtml(o,false)).join(''):`<div class="empty-state"><p>${all.length?'Nessun ordine con questo stato.':'Nessun ordine ancora. Appariranno qui quando i clienti invieranno richieste.'}</p></div>`;
+  updateNewBadge();
+}
+function filterOrders(f,btn){document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderOrders(f);}
+function setOrderStatus(id,status){
+  const all=S.get('v3d_orders',[]);
+  const o=all.find(x=>x.id===id);
+  if(o){o.status=status;S.set('v3d_orders',all);}
+  renderOrders();renderDashboard();flashSync();
+}
+function delOrder(id){
+  if(!confirm('Eliminare?'))return;
+  S.set('v3d_orders',S.get('v3d_orders',[]).filter(x=>x.id!==id));
+  renderOrders();renderDashboard();
+}
+
+// SITO CONTENUTI
+function loadSiteFields(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  document.getElementById('s-eyebrow').value=c.eyebrow||'';
+  document.getElementById('s-headline').value=c.headline||'';
+  document.getElementById('s-tagline').value=c.tagline||'';
+  document.getElementById('s-about').value=c.about||'';
+  renderStatsEditor(c.stats||DEFAULT_CONFIG.stats);
+}
+function saveSiteText(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  c.eyebrow=document.getElementById('s-eyebrow').value;
+  c.headline=document.getElementById('s-headline').value;
+  c.tagline=document.getElementById('s-tagline').value;
+  c.about=document.getElementById('s-about').value;
+  S.set('v3d_config',c);flashSync();
+}
+function renderStatsEditor(stats){
+  document.getElementById('stats-editor').innerHTML=stats.map((s,i)=>`
+    <div class="stat-edit-row">
+      <input type="text" value="${s.n}" placeholder="es. 6" onchange="updateStat(${i},'n',this.value)">
+      <input type="text" value="${s.l}" placeholder="es. Stampanti attive" onchange="updateStat(${i},'l',this.value)">
+    </div>`).join('');
+}
+let localStats=null;
+function updateStat(i,k,v){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  if(!localStats)localStats=JSON.parse(JSON.stringify(c.stats||DEFAULT_CONFIG.stats));
+  localStats[i][k]=v;
+}
+function addStat(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  if(!localStats)localStats=JSON.parse(JSON.stringify(c.stats||DEFAULT_CONFIG.stats));
+  localStats.push({n:'0',l:'Nuova statistica'});
+  renderStatsEditor(localStats);
+}
+function saveStats(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  if(localStats)c.stats=localStats;
+  S.set('v3d_config',c);localStats=null;loadSiteFields();flashSync();
+}
+
+// PREZZI SLIDERS
+function loadPrezziSliders(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  const p=c.prezzi||DEFAULT_CONFIG.prezzi;
+  const set=(id,v,suffix)=>{const el=document.getElementById(id);if(el){el.value=v;const lbl=document.getElementById('pv-'+id.slice(2));if(lbl)lbl.textContent=v+suffix;}};
+  set('p-prog',p.prog||4.5,'€/h');
+  set('p-pla-ore',(p['fdm-pla']||{}).ore||1.2,'€/h');
+  set('p-pla-mat',(p['fdm-pla']||{}).mat||0.018,'€/g');
+  set('p-petg-ore',(p['fdm-petg']||{}).ore||1.4,'€/h');
+  set('p-petg-mat',(p['fdm-petg']||{}).mat||0.022,'€/g');
+  set('p-abs-ore',(p['fdm-abs']||{}).ore||1.6,'€/h');
+  set('p-abs-mat',(p['fdm-abs']||{}).mat||0.020,'€/g');
+  set('p-tpu-ore',(p['fdm-tpu']||{}).ore||1.5,'€/h');
+  set('p-tpu-mat',(p['fdm-tpu']||{}).mat||0.030,'€/g');
+  set('p-asa-ore',(p['fdm-asa']||{}).ore||1.5,'€/h');
+  set('p-asa-mat',(p['fdm-asa']||{}).mat||0.025,'€/g');
+  set('p-res-ore',(p.resina||{}).ore||4.5,'€/h');
+  set('p-res-ml',(p.resina||{}).ml||0.08,'€/ml');
+  set('p-las-p',(p.laser||{}).piccolo||2,'€');
+  set('p-las-m',(p.laser||{}).medio||5,'€');
+  set('p-las-g',(p.laser||{}).grande||10,'€');
+}
+function previewPrezzi(){}
+function savePrezzi(){
+  const c=S.get('v3d_config',DEFAULT_CONFIG);
+  const gv=id=>parseFloat(document.getElementById(id).value);
+  c.prezzi={
+    prog:gv('p-prog'),
+    'fdm-pla':{ore:gv('p-pla-ore'),mat:gv('p-pla-mat')},
+    'fdm-petg':{ore:gv('p-petg-ore'),mat:gv('p-petg-mat')},
+    'fdm-abs':{ore:gv('p-abs-ore'),mat:gv('p-abs-mat')},
+    'fdm-tpu':{ore:gv('p-tpu-ore'),mat:gv('p-tpu-mat')},
+    'fdm-asa':{ore:gv('p-asa-ore'),mat:gv('p-asa-mat')},
+    resina:{ore:gv('p-res-ore'),ml:gv('p-res-ml')},
+    laser:{piccolo:gv('p-las-p'),medio:gv('p-las-m'),grande:gv('p-las-g')}
+  };
+  S.set('v3d_config',c);flashSync();
+}
+
+// SYNC BADGE
+function flashSync(){
+  const b=document.getElementById('sync-badge');
+  b.textContent='Salvato';b.style.background='var(--green-l)';b.style.borderColor='rgba(40,168,96,.25)';b.style.color='var(--green)';
+  setTimeout(()=>{b.textContent='Sincronizzato';b.style.background='var(--green-l)';},2500);
+}
+</script>
+</body>
+</html>
